@@ -248,6 +248,12 @@ body {
   .weather-forecast .current .feels-like:before {
     content: "Feels like: ";
     color: #888; }
+  .weather-forecast .current .min-temperature:before {
+    content: "Min: ";
+    color: #888; }
+  .weather-forecast .current .max-temperature:before {
+    content: "Max: ";
+    color: #888; }
   .weather-forecast .current .wind:before {
     content: "Wind: ";
     color: #888; }

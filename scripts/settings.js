@@ -1,0 +1,5 @@
+var settings = {
+"WEATHER_SERVICE_API_KEY": "ecefd3d2e460437978a5ad49c738ec1a",
+"DEFAULT_COUNTRY": "GB",
+"DEFAULT_CITY": "London"
+}

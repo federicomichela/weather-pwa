@@ -1,6 +1,9 @@
 (function() {
 	'use strict';
 
+	// set apiKey in Weather service
+	Weather.setApiKey(settings.WEATHER_SERVICE_API_KEY);
+
 	// check if browser supports indexDB
 	if (!'indexedDB' in window) {
 		console.error('This browser doesn NOT support IndexedDB');
@@ -25,36 +28,6 @@
 				upgradeDb.createObjectStore(citiesObj, {keyPath: 'id'});
 		}
 	});
-	
-	var injectedForecast = {
-			key: 'newyork',
-			label: 'New York, NY',
-			currently: {
-				time: 1453489481,
-				summary: 'Clear',
-				icon: 'partly-cloudy-day',
-				temperature: 52.74,
-				apparentTemperature: 74.34,
-				precipProbability: 0.20,
-				humidity: 0.77,
-				windBearing: 125,
-				windSpeed: 1.52
-			},
-			daily: {
-				data: [
-					{icon: 'clear-day', temperatureMax: 55, temperatureMin: 34},
-					{icon: 'rain', temperatureMax: 55, temperatureMin: 34},
-					{icon: 'snow', temperatureMax: 55, temperatureMin: 34},
-					{icon: 'sleet', temperatureMax: 55, temperatureMin: 34},
-					{icon: 'fog', temperatureMax: 55, temperatureMin: 34},
-					{icon: 'wind', temperatureMax: 55, temperatureMin: 34},
-					{icon: 'partly-cloudy-day', temperatureMax: 55, temperatureMin: 34}
-					]
-			}
-	};
-
-	var apiKey = 'ecefd3d2e460437978a5ad49c738ec1a';
-	var weatherAPIUrlBase = 'http://api.openweathermap.org/data/2.5/forecast?APPID='+apiKey+'&q=';
 
 	var app = {
 			isLoading: true,
@@ -66,9 +39,9 @@
 			addDialog: document.querySelector('.dialog-container'),
 			daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
 			
-			citiesList: []
+			citiesList: [],
+			selectedForecast: null
 	};
-
 
 	/*****************************************************************************
 	 *
@@ -123,47 +96,59 @@
 
 	// Updates a weather card with the latest weather forecast. If the card
 	// doesn't already exist, it's cloned from the template.
-	app.updateForecastCard = function(data) {
-		var card = app.visibleCards[data.key];
+	app.updateForecastCard = function(forecast) {
+		if (!forecast) {
+			// if no city is specified, fetch the user city;
+			app.selectedForecast = app.getUserCity();
+			forecast = Weather.getForecast(app.selectedForecast.id);
+		}
+
+		var current = forecast.list[0];
+		var card = app.visibleCards[app.selectedForecast.id];
 		if (!card) {
 			card = app.cardTemplate.cloneNode(true);
 			card.classList.remove('cardTemplate');
-			card.querySelector('.location').textContent = data.label;
+			card.querySelector('.location').textContent = current.label;
 			card.removeAttribute('hidden');
 			app.container.appendChild(card);
-			app.visibleCards[data.key] = card;
+			app.visibleCards[app.selectedForecast.id] = card;
 		}
-		card.querySelector('.description').textContent = data.currently.summary;
-		card.querySelector('.date').textContent =
-			new Date(data.currently.time * 1000);
-		card.querySelector('.current .icon').classList.add(data.currently.icon);
+		card.querySelector('.description').textContent = current.weather[0].description;
+		var dt = new Date(current.dt_txt);
+		var dtString = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString();
+		card.querySelector('.date').textContent = dtString;
+		card.querySelector('.current .icon').classList.add(current.weather[0].icon);
 		card.querySelector('.current .temperature .value').textContent =
-			Math.round(data.currently.temperature);
-		card.querySelector('.current .feels-like .value').textContent =
-			Math.round(data.currently.apparentTemperature);
+			Math.round(current.main.temp);
+		card.querySelector('.current .min-temperature .value').textContent =
+			Math.round(current.main.min_temp);
+		card.querySelector('.current .max-temperature .value').textContent =
+			Math.round(current.main.max_temp);
 		card.querySelector('.current .precip').textContent =
-			Math.round(data.currently.precipProbability * 100) + '%';
+			Math.round(current.rain['3h'] * 100) + '%';
 		card.querySelector('.current .humidity').textContent =
-			Math.round(data.currently.humidity * 100) + '%';
+			Math.round(current.main.humidity) + '%';
 		card.querySelector('.current .wind .value').textContent =
-			Math.round(data.currently.windSpeed);
+			Math.round(current.wind.speed);
 		card.querySelector('.current .wind .direction').textContent =
-			data.currently.windBearing;
+			current.wind.deg;
 		var nextDays = card.querySelectorAll('.future .oneday');
-		var today = new Date();
-		today = today.getDay();
+
+		var forecastByDay = _.groupBy(forecast.list, (daily) => {
+			return new Date(daily.dt_txt);
+		});
 		for (var i = 0; i < 7; i++) {
 			var nextDay = nextDays[i];
-			var daily = data.daily.data[i];
-			if (daily && nextDay) {
-				nextDay.querySelector('.date').textContent =
-					app.daysOfWeek[(i + today) % 7];
-				nextDay.querySelector('.icon').classList.add(daily.icon);
-				nextDay.querySelector('.temp-high .value').textContent =
-					Math.round(daily.temperatureMax);
-				nextDay.querySelector('.temp-low .value').textContent =
-					Math.round(daily.temperatureMin);
-			}
+			var day = new Date(Object.keys(forecastByDay)[i]);
+			
+			
+			nextDay.querySelector('.date').textContent =
+				app.daysOfWeek[(d.getDay() + today) % 7];
+			nextDay.querySelector('.icon').classList.add(daily.icon);
+			nextDay.querySelector('.temp-high .value').textContent =
+				Math.round(daily.temperatureMax);
+			nextDay.querySelector('.temp-low .value').textContent =
+				Math.round(daily.temperatureMin);
 		}
 		if (app.isLoading) {
 			app.spinner.setAttribute('hidden', true);
@@ -242,7 +227,7 @@
 		}
 		
 		var cityForecast = {
-			key: city.name.lower(),
+			key: city.name.toLowerCase(),
 			label: city.name,
 			currently: {
 				time: response.dt,
@@ -300,32 +285,54 @@
 		});
 	};
 	
-	app.getCityByName = function(name) {
-		app.citiesList.forEach((city) => {
-			if (city.name.lower() == name.lower()) {
-				return city;
-			}
-		});
+	app.getUserCity = function() {
+		var userIpInfos = getIPInfos();
+		var citiesInUserCountry = _.where(app.citiesList, {country:userIpInfos.country_code});
+		var userCity = _.findWhere(citiesInUserCountry, {name:userIpInfos.city});
+
+		// city not found...return first city in same country
+		// TODO: instead return closest city by implementing a method that checks the coords
+		return userCity || citiesInUserCountry[0];
 	};
 	
 	// load api cities
-	app.loadCities = function() {
+	app.loadCities = function(callback) {
 		// check if in cache ...
 		app.getCitiesFromCache().then((cities) => {
 			if (cities.length > 0) {
 				app.citiesList = cities;
 				console.log(cities.length + ' cities loaded from cache...');
+
+				if (callback) {
+					callback();
+				}
 			} else {
 				// otherwise load them from the json and cache them
-				loadJSON('city.list.json', function(response) {
-					app.citiesList = JSON.parse(response);
+				loadJSON('city.list.json', (cities) => {
+					app.citiesList = cities;
 					app.cacheItems(app.citiesList, citiesObj);
 					console.log(app.citiesList.length + ' cities loaded & cached...');
+
+					if (callback) {
+						callback();
+					}
 				});
 			}
 		});
 	};
-	
-	app.loadCities();
-	app.updateForecastCard(injectedForecast);
+	app.populateCitiesDdl = function() {
+		app.citiesList.forEach((city) => {
+			var ddl = document.getElementById('selectCityToAdd');
+			var option = document.createElement('option');
+			option.value = city.id;
+			option.text = city.name;
+			ddl.add(option);
+		});
+	};
+
+	var callback = function () {
+		app.populateCitiesDdl();
+		app.updateForecastCard();
+	};
+	app.loadCities(callback);
 })();

@@ -26,12 +26,15 @@
         <div class="visual">
           <div class="icon"></div>
           <div class="temperature">
-            <span class="value"></span><span class="scale">°F</span>
+            <span class="value"></span><span class="scale">°</span>
           </div>
         </div>
         <div class="description">
-          <div class="feels-like">
-            <span class="value"></span><span class="scale">°F</span>
+          <div class="min-temperature">
+            <span class="value"></span><span class="scale">°</span>
+          </div>
+          <div class="max-temperature">
+            <span class="value"></span><span class="scale">°</span>
           </div>
           <div class="precip"></div>
           <div class="humidity"></div>
@@ -121,14 +124,7 @@
     <div class="dialog">
       <div class="dialog-title">Add new city</div>
       <div class="dialog-body">
-        <select id="selectCityToAdd">
-          <option value="austin">Austin, TX</option>
-          <option value="boston">Boston, MA</option>
-          <option value="chicago">Chicago, IL</option>
-          <option value="portland">Portland, OR</option>
-          <option value="sanfrancisco">San Francisco, CA</option>
-          <option value="seattle">Seattle, WA</option>
-        </select>
+        <select id="selectCityToAdd"></select>
       </div>
       <div class="dialog-buttons">
         <button id="butAddCity" class="button">Add</button>
@@ -145,6 +141,10 @@
 
   <!-- Insert link to app.js here -->
   <script type="text/json" src="city.list.json"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+  <script type="text/javascript" src="scripts/settings.js"></script>
+  <script type="text/javascript" src="scripts/libs/underscore.min.js"></script>
+  <script type="text/javascript" src="scripts/libs/weather.js"></script>
   <script type="text/javascript" src="scripts/libs/idb.js"></script>
   <script type="text/javascript" src="scripts/util.js"></script>
   <script type="text/javascript" src="scripts/app.js"></script>
