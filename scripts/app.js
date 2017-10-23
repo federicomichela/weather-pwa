@@ -117,13 +117,13 @@
 		var dt = new Date(current.dt_txt);
 		var dtString = dt.toLocaleDateString() + ' ' + dt.toLocaleTimeString();
 		card.querySelector('.date').textContent = dtString;
-		card.querySelector('.current .icon').classList.add(current.weather[0].icon);
+		card.querySelector('.current .icon').classList.add('img-' + current.weather[0].icon);
 		card.querySelector('.current .temperature .value').textContent =
 			Math.round(current.main.temp);
 		card.querySelector('.current .min-temperature .value').textContent =
-			Math.round(current.main.min_temp);
+			Math.round(current.main.temp_min);
 		card.querySelector('.current .max-temperature .value').textContent =
-			Math.round(current.main.max_temp);
+			Math.round(current.main.temp_max);
 		card.querySelector('.current .precip').textContent =
 			Math.round(current.rain['3h'] * 100) + '%';
 		card.querySelector('.current .humidity').textContent =
@@ -135,21 +135,33 @@
 		var nextDays = card.querySelectorAll('.future .oneday');
 
 		var forecastByDay = _.groupBy(forecast.list, (daily) => {
-			return new Date(daily.dt_txt);
+			return daily.dt_txt.split(' ')[0];
 		});
-		for (var i = 0; i < 7; i++) {
-			var nextDay = nextDays[i];
-			var day = new Date(Object.keys(forecastByDay)[i]);
-			
-			
-			nextDay.querySelector('.date').textContent =
-				app.daysOfWeek[(d.getDay() + today) % 7];
-			nextDay.querySelector('.icon').classList.add(daily.icon);
-			nextDay.querySelector('.temp-high .value').textContent =
-				Math.round(daily.temperatureMax);
-			nextDay.querySelector('.temp-low .value').textContent =
-				Math.round(daily.temperatureMin);
-		}
+		var i = 0;
+		Object.keys(forecastByDay).forEach((day) => {
+			var halfDayForecast = _.find(forecastByDay[day], (forecast) => {
+				return forecast.dt_txt.split(' ')[1] == '12:00:00';
+			});
+
+			if (halfDayForecast) {
+				var d = new Date(day);
+				var nextDay = nextDays[i];
+				var today = new Date();
+			    today = today.getDay();
+			    var iconClass = 'img-' + halfDayForecast.weather[0].icon;
+
+				nextDay.querySelector('.date').textContent =
+					app.daysOfWeek[(d.getDay() + today) % 7];
+				nextDay.querySelector('.icon').classList.add(iconClass);
+				nextDay.querySelector('.temp-high .value').textContent =
+					Math.round(halfDayForecast.main.temp_max);
+				nextDay.querySelector('.temp-low .value').textContent =
+					Math.round(halfDayForecast.main.temp_min);
+
+				i += 1;
+			}
+		})
+
 		if (app.isLoading) {
 			app.spinner.setAttribute('hidden', true);
 			app.container.removeAttribute('hidden');
