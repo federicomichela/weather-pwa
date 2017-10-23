@@ -50,7 +50,7 @@ Weather.kelvinToCelsius = function (value) {
 Weather.getForecast = function (cityID) {
 	var url = "http://api.openweathermap.org/data/2.5/forecast?id=" + encodeURIComponent(cityID);
 	// define days
-	url += '&cnt=7';
+//	url += '&cnt=7';
 	// define units [kelvin by default; metric (celsius); imperial (fahrenheit)
 	url += '&units=metric';
 	
