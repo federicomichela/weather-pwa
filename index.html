@@ -1,152 +1,93 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Weather App for UD811">
-  <title>Weather</title>
-  <!-- Insert link to stylesheet here -->
-  <link rel="stylesheet" href="styles/ud811.css"> 
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Weather App for UD811">
+<title>Weather</title>
+<!-- Insert link to stylesheet here -->
+<link rel="stylesheet" href="styles/ud811.css">
 </head>
 <body>
 
-  <header class="header">
-    <h1 class="header__title">Weather PWA</h1>
-    <button id="butRefresh" class="headerButton" aria-label="Refresh"></button>
-    <button id="butAdd" class="headerButton" aria-label="Add"></button>
-  </header>
+	<header class="header">
+		<h1 class="header__title">Weather PWA</h1>
+		<button id="butRefresh" class="headerButton" aria-label="Refresh"></button>
+		<button id="butAdd" class="headerButton" aria-label="Add"></button>
+	</header>
 
-  <main class="main">
-    <div class="card cardTemplate weather-forecast" hidden>
-      <div class="location"></div>
-      <div class="date"></div>
-      <div class="description"></div>
-      <div class="current">
-        <div class="visual">
-          <div class="icon"></div>
-          <div class="temperature">
-            <span class="value"></span><span class="scale">°</span>
-          </div>
-        </div>
-        <div class="description">
-          <div class="min-temperature">
-            <span class="value"></span><span class="scale">°</span>
-          </div>
-          <div class="max-temperature">
-            <span class="value"></span><span class="scale">°</span>
-          </div>
-          <div class="precip"></div>
-          <div class="humidity"></div>
-          <div class="wind">
-            <span class="value"></span>
-            <span class="scale">mph</span>
-            <span class="direction"></span>°
-          </div>
-        </div>
-      </div>
-      <div class="future">
-        <div class="oneday">
-          <div class="date"></div>
-          <div class="icon"></div>
-          <div class="temp-high">
-            <span class="value"></span>°
-          </div>
-          <div class="temp-low">
-            <span class="value"></span>°
-          </div>
-        </div>
-        <div class="oneday">
-          <div class="date"></div>
-          <div class="icon"></div>
-          <div class="temp-high">
-            <span class="value"></span>°
-          </div>
-          <div class="temp-low">
-            <span class="value"></span>°
-          </div>
-        </div>
-        <div class="oneday">
-          <div class="date"></div>
-          <div class="icon"></div>
-          <div class="temp-high">
-            <span class="value"></span>°
-          </div>
-          <div class="temp-low">
-            <span class="value"></span>°
-          </div>
-        </div>
-        <div class="oneday">
-          <div class="date"></div>
-          <div class="icon"></div>
-          <div class="temp-high">
-            <span class="value"></span>°
-          </div>
-          <div class="temp-low">
-            <span class="value"></span>°
-          </div>
-        </div>
-        <div class="oneday">
-          <div class="date"></div>
-          <div class="icon"></div>
-          <div class="temp-high">
-            <span class="value"></span>°
-          </div>
-          <div class="temp-low">
-            <span class="value"></span>°
-          </div>
-        </div>
-        <!-- <div class="oneday">
-          <div class="date"></div>
-          <div class="icon"></div>
-          <div class="temp-high">
-            <span class="value"></span>°
-          </div>
-          <div class="temp-low">
-            <span class="value"></span>°
-          </div>
-        </div>
-        <div class="oneday">
-          <div class="date"></div>
-          <div class="icon"></div>
-          <div class="temp-high">
-            <span class="value"></span>°
-          </div>
-          <div class="temp-low">
-            <span class="value"></span>°
-          </div>
-        </div> -->
-      </div>
-    </div>
-  </main>
+	<main class="main" id="app" v-cloak>
+	<div class="card cardTemplate weather-forecast" v-for="city in myCities" v-show="!isLoading">
+		<div class="location">{{ city.name }}</div>
+		<div class="date">{{ city.forecast.date }}</div>
+		<div class="description">{{ city.forecast.description }}</div>
+		<div class="current">
+			<div class="visual">
+				<div v-bind:class="city.forecast.icon"></div>
+				<div class="temperature">
+					<span class="value">{{ city.forecast.avgTemp }}</span><span class="scale">°</span>
+				</div>
+			</div>
+			<div class="description">
+				<div class="min-temperature">
+					<span class="value">{{ city.forecast.minTemp }}</span><span class="scale">°</span>
+				</div>
+				<div class="max-temperature">
+					<span class="value">{{ city.forecast.maxTemp }}</span><span class="scale">°</span>
+				</div>
+				<div class="precip">{{ city.forecast.rain }}</div>
+				<div class="humidity">{{ city.forecast.humidity }}</div>
+				<div class="wind">
+					<span class="value">{{ city.forecast.wind.value }}</span>
+					<span class="scale">{{ city.forecast.wind.scale }}mph</span>
+					<span class="direction">{{ city.forecast.wind.direction }}</span>°
+				</div>
+			</div>
+		</div>
 
-  <div class="dialog-container">
-    <div class="dialog">
-      <div class="dialog-title">Add new city</div>
-      <div class="dialog-body">
-        <select id="selectCityToAdd"></select>
-      </div>
-      <div class="dialog-buttons">
-        <button id="butAddCity" class="button">Add</button>
-        <button id="butAddCancel" class="button">Cancel</button>
-      </div>
-    </div>
-  </div>
+		<div class="future">
+			<div class="oneday" v-for="day in city.forecast.future">
+				<div class="date">{{ day.date }}</div>
+				<div v-bind:class="day.icon"></div>
+				<div class="temp-high">
+					<span class="value">{{ day.maxTemp }}</span>°
+				</div>
+				<div class="temp-low">
+					<span class="value">{{ day.minTemp }}</span>°
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="loader" v-show="isLoading">
+		<svg viewBox="0 0 32 32" width="32" height="32">
+	      <circle id="ud811Spinner" cx="16" cy="16" r="14" fill="none"></circle>
+	    </svg>
+	</div>
+	</main>
 
-  <div class="loader">
-    <svg viewBox="0 0 32 32" width="32" height="32">
-      <circle id="ud811Spinner" cx="16" cy="16" r="14" fill="none"></circle>
-    </svg>
-  </div>
+	<div class="dialog-container">
+		<div class="dialog">
+			<div class="dialog-title">Add new city</div>
+			<div class="dialog-body">
+				<select id="selectCityToAdd"></select>
+			</div>
+			<div class="dialog-buttons">
+				<button id="butAddCity" class="button">Add</button>
+				<button id="butAddCancel" class="button">Cancel</button>
+			</div>
+		</div>
+	</div>
 
-  <!-- Insert link to app.js here -->
-  <script type="text/json" src="city.list.json"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-  <script type="text/javascript" src="scripts/settings.js"></script>
-  <script type="text/javascript" src="scripts/libs/underscore.min.js"></script>
-  <script type="text/javascript" src="scripts/libs/weather.js"></script>
-  <script type="text/javascript" src="scripts/libs/idb.js"></script>
-  <script type="text/javascript" src="scripts/util.js"></script>
-  <script type="text/javascript" src="scripts/app.js"></script>
+	<!-- Insert link to app.js here -->
+	<script type="text/json" src="city.list.json"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script type="text/javascript" src="scripts/libs/underscore.min.js"></script>
+	<script src="https://unpkg.com/vue"></script>
+	<script type="text/javascript" src="scripts/settings.js"></script>
+	<script type="text/javascript" src="scripts/libs/weather.js"></script>
+	<script type="text/javascript" src="scripts/libs/idb.js"></script>
+	<script type="text/javascript" src="scripts/util.js"></script>
+	<script type="text/javascript" src="scripts/app.js"></script>
 </body>
 </html>
