@@ -12,20 +12,15 @@
 
 	// create / open datastore and tables
 	var dbPromise = null;
-	var forecastObj = 'city-forecast';
-	var citiesObj = 'cities';
-	dbPromise = idb.open('weatherDB', 2, function(upgradeDb) {
-		switch (upgradeDb.oldVersion) {
-			case 0:
-				// a placeholder case so that the switch block will
-				// execute when the database is first created
-				// (oldVersion is 0)
-			case 1:
-				console.log('Creating the city-forecast object store');
-				upgradeDb.createObjectStore(forecastObj, {keyPath: 'key'});
-			case 2:
-				console.log('Creating the cities object store');
-				upgradeDb.createObjectStore(citiesObj, {keyPath: 'id'});
+	var forecastTableName = 'city-forecast';
+	var citiesTableName = 'cities';
+	dbPromise = idb.open('weatherDB', 2, function(weatherDB) {
+		if (!weatherDB.objectStoreNames.contains(forecastTableName)) {
+			var forecastTable = weatherDB.createObjectStore(citiesTableName, {keyPath: 'key'});
+		}
+		if (!weatherDB.objectStoreNames.contains(citiesTableName)) {
+			var citiesTable = weatherDB.createObjectStore(citiesTableName, {keyPath: 'id'});
+			citiesTable.createIndex('name', 'name', {unique: true});
 		}
 	});
 
@@ -70,7 +65,7 @@
 		app.selectedCities.push({key: key, label: label});
 		app.toggleAddDialog(false);
 		
-		app.cacheItems([{'key': key, 'label': label}], forecastObj);
+		app.cacheItems([{'key': key, 'label': label}], forecastTableName);
 	});
 
 	/* Event listener for cancel button in add city dialog */
@@ -199,7 +194,7 @@
 					var response = JSON.parse(request.response);
 					var cityForecast = app.normaliseAPIResponse(request.response);
 					app.updateForecastCard(cityForecast);
-					app.cacheItems([cityForecast], forecastObj);
+					app.cacheItems([cityForecast], forecastTableName);
 				}
 			}
 		};
@@ -207,66 +202,18 @@
 		request.send();
 	};
 
-	app.normaliseAPIResponse = function(response) {
-		var city = app.getCityById(response.id);
-		var icon = null;
-		if (response.weather.description.indexOf('clear') > -1) {
-			icon = 'clear';
-		}
-		if (response.weather.description.indexOf('sunny') > -1) {
-			icon = 'cloudy_s_sunny';
-		}
-		if (response.weather.description.indexOf('showers') > -1) {
-			icon = 'cloudy-scattered-showers';
-		}
-		if (response.weather.description.indexOf('fog') > -1) {
-			icon = 'fog';
-		}
-		if (response.weather.description.indexOf('clear') > -1) {
-			icon = 'clear';
-		}
-		if (response.weather.description.indexOf('rain') > -1) {
-			icon = 'rain';
-		}
-		if (response.weather.description.indexOf('snow') > -1) {
-			icon = 'snow';
-		}
-		if (response.weather.description.indexOf('wind') > -1) {
-			icon = 'wind';
-		}
-		if (response.weather.description.indexOf('thunderstorm') > -1) {
-			icon = 'thunderstorm';
-		}
-		
-		var cityForecast = {
-			key: city.name.toLowerCase(),
-			label: city.name,
-			currently: {
-				time: response.dt,
-				summary: response.weather[response.weather.length-1].description,
-				icon: icon,
-				temperature: response.main.temp,
-				minTemp: response.main.temp_min,
-				maxTemp: response.main.temp_max,
-				humidity: response.main.humidity,
-				windBearing: response.wind.deg,
-				windSpeed: response.wind.speed
-			}
-		}
-	};
-	
 	app.getForecastFromCache = function(key) {
 		return dbPromise.then(function(db) {
-			var tx = db.transaction(forecastObj, 'readonly');
-			var store = tx.objectStore(forecastObj);
+			var tx = db.transaction(forecastTableName, 'readonly');
+			var store = tx.objectStore(forecastTableName);
 			var index = store.index('key');
 			return index.get(key);
 	    });
 	};
 	app.getCitiesFromCache = function() {
 		return dbPromise.then(function(db) {
-			var tx = db.transaction(citiesObj, 'readonly');
-			var cities = tx.objectStore(citiesObj);
+			var tx = db.transaction([citiesTableName], 'readonly');
+			var cities = tx.objectStore(citiesTableName);
 			return cities.getAll();
 	    });
 	};
@@ -280,20 +227,14 @@
 	};
 
 	// save to browser cache
-	app.cacheItems = function(items, obj) {
+	app.cacheItem = function(item, obj) {
 		dbPromise.then(function(db) {
 			var tx = db.transaction(obj, 'readwrite');
 			var store = tx.objectStore(obj);
-			return Promise.all(items.map(function(item) {
-		          console.log('Adding item: ', item);
-		          return store.add(item);
-		        })
-		      ).catch(function(e) {
-		        tx.abort();
-		        console.log(e);
-		      }).then(function() {
-		        console.log('All items added successfully!');
-		      });
+			store.add(item);
+			return tx.complete;
+		}).then(() => {
+			console.log('Item added');
 		});
 	};
 	
@@ -303,7 +244,7 @@
 		var userCity = _.findWhere(citiesInUserCountry, {name:userIpInfos.city});
 
 		// city not found...return first city in same country
-		// TODO: instead return closest city by implementing a method that checks the coords
+		// TODO: return closest city by implementing a method that checks the coords
 		return userCity || citiesInUserCountry[0];
 	};
 	
@@ -314,37 +255,40 @@
 			if (cities.length > 0) {
 				app.citiesList = cities;
 				console.log(cities.length + ' cities loaded from cache...');
-
-				if (callback) {
-					callback();
-				}
 			} else {
-				// otherwise load them from the json and cache them
+				// otherwise find and cache the user city
 				loadJSON('city.list.json', (cities) => {
-					app.citiesList = cities;
-					app.cacheItems(app.citiesList, citiesObj);
-					console.log(app.citiesList.length + ' cities loaded & cached...');
-
-					if (callback) {
-						callback();
-					}
+					var userCity = app.getUserCity()
+					app.cacheItem(app.citiesList, userCity)
 				});
+			}
+
+			if (callback) {
+				callback();
 			}
 		});
 	};
 	app.populateCitiesDdl = function() {
-		app.citiesList.forEach((city) => {
+		// create one option for each city in the json
+		loadJSON('city.list.json', (cities) => {
 			var ddl = document.getElementById('selectCityToAdd');
-			var option = document.createElement('option');
-			option.value = city.id;
-			option.text = city.name;
-			ddl.add(option);
+			cities.forEach((city) => {
+				var option = document.createElement('option');
+				option.value = city.id;
+				option.text = city.name;
+				ddl.add(option);
+			});
 		});
 	};
 
+	app.searchCity = function(term) {
+		var match = find
+	};
+	
 	var callback = function () {
-		app.populateCitiesDdl();
-		app.updateForecastCard();
+//		app.populateCitiesDdl();
+		app.searchCity();
+//		app.updateForecastCard();
 	};
 	app.loadCities(callback);
 })();
