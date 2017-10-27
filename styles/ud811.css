@@ -322,4 +322,7 @@ body {
     font-size: 3em; }
   .weather-forecast .future .oneday .icon {
     width: 32px;
-    height: 32px; } }
+    height: 32px; }
+}
+
+[v-cloak] { display:none; }
