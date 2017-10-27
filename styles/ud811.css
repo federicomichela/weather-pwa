@@ -297,20 +297,20 @@ body {
 }
 .weather-forecast .icon.img-01d { background-image: url("/images/01d.png"); }
 .weather-forecast .icon.img-01n { background-image: url("/images/01n.png"); }
-.weather-forecast .icon.img-02d { background-image: url("/images/01d.png"); }
-.weather-forecast .icon.img-02n { background-image: url("/images/01n.png"); }
-.weather-forecast .icon.img-03d { background-image: url("/images/01d.png"); }
-.weather-forecast .icon.img-03n { background-image: url("/images/01n.png"); }
-.weather-forecast .icon.img-04d { background-image: url("/images/01d.png"); }
-.weather-forecast .icon.img-04n { background-image: url("/images/01n.png"); }
-.weather-forecast .icon.img-09d { background-image: url("/images/01d.png"); }
-.weather-forecast .icon.img-09n { background-image: url("/images/01n.png"); }
-.weather-forecast .icon.img-10d { background-image: url("/images/01d.png"); }
-.weather-forecast .icon.img-10n { background-image: url("/images/01n.png"); }
-.weather-forecast .icon.img-11d { background-image: url("/images/01d.png"); }
-.weather-forecast .icon.img-11n { background-image: url("/images/01n.png"); }
-.weather-forecast .icon.img-14d { background-image: url("/images/01d.png"); }
-.weather-forecast .icon.img-14n { background-image: url("/images/01n.png"); }
+.weather-forecast .icon.img-02d { background-image: url("/images/02d.png"); }
+.weather-forecast .icon.img-02n { background-image: url("/images/02n.png"); }
+.weather-forecast .icon.img-03d { background-image: url("/images/03d.png"); }
+.weather-forecast .icon.img-03n { background-image: url("/images/03n.png"); }
+.weather-forecast .icon.img-04d { background-image: url("/images/04d.png"); }
+.weather-forecast .icon.img-04n { background-image: url("/images/04n.png"); }
+.weather-forecast .icon.img-09d { background-image: url("/images/09d.png"); }
+.weather-forecast .icon.img-09n { background-image: url("/images/09n.png"); }
+.weather-forecast .icon.img-10d { background-image: url("/images/10d.png"); }
+.weather-forecast .icon.img-10n { background-image: url("/images/10n.png"); }
+.weather-forecast .icon.img-11d { background-image: url("/images/11d.png"); }
+.weather-forecast .icon.img-11n { background-image: url("/images/11n.png"); }
+.weather-forecast .icon.img-14d { background-image: url("/images/14d.png"); }
+.weather-forecast .icon.img-14n { background-image: url("/images/14n.png"); }
 
 @media (max-width: 450px) {
   .weather-forecast .date, .weather-forecast .description {
