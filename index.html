@@ -18,35 +18,32 @@
 	</header>
 
 	<main class="main" id="app" v-cloak>
-	<div class="card cardTemplate weather-forecast" v-for="city in myCities" v-show="!isLoading">
+	<div class="card cardTemplate weather-forecast" v-for="city in myCitiesForecast" v-show="!isLoading">
 		<div class="location">{{ city.name }}</div>
-		<div class="date">{{ city.forecast.date }}</div>
-		<div class="description">{{ city.forecast.description }}</div>
+		<div class="date">{{ timestampToDateString(city.dt) }}</div>
+		<div class="description">{{ city.weather[0].description }}</div>
 		<div class="current">
 			<div class="visual">
-				<div v-bind:class="city.forecast.icon"></div>
+				<div v-bind:class="getIconClass(city.weather[0])"></div>
 				<div class="temperature">
-					<span class="value">{{ city.forecast.avgTemp }}</span><span class="scale">°</span>
+					<span class="value">{{ city.main.temp }}</span><span class="scale">°</span>
 				</div>
 			</div>
 			<div class="description">
 				<div class="min-temperature">
-					<span class="value">{{ city.forecast.minTemp }}</span><span class="scale">°</span>
+					<span class="value">{{ city.main.temp_min }}</span><span class="scale">°</span>
 				</div>
 				<div class="max-temperature">
-					<span class="value">{{ city.forecast.maxTemp }}</span><span class="scale">°</span>
+					<span class="value">{{ city.main.temp_max }}</span><span class="scale">°</span>
 				</div>
-				<div class="precip">{{ city.forecast.rain }}</div>
-				<div class="humidity">{{ city.forecast.humidity }}</div>
-				<div class="wind">
-					<span class="value">{{ city.forecast.wind.value }}</span>
-					<span class="scale">{{ city.forecast.wind.scale }}mph</span>
-					<span class="direction">{{ city.forecast.wind.direction }}</span>°
+				<div class="precip" v-if="city.rain">{{ city.rain.all }}</div>
+				<div class="humidity" v-if="city.main">{{ city.main.humidity }}</div>
+				<div class="wind" v-if="city.wind">{{ city.wind.deg }}
 				</div>
 			</div>
 		</div>
 
-		<div class="future">
+		<div class="future" v-if="city.future">
 			<div class="oneday" v-for="day in city.forecast.future">
 				<div class="date">{{ day.date }}</div>
 				<div v-bind:class="day.icon"></div>

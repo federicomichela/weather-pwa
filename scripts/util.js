@@ -1,39 +1,29 @@
-var loadJSON = function(filepath, callback) {   
-
-    var xobj = new XMLHttpRequest();
-        xobj.overrideMimeType("application/json");
-    xobj.open('GET', filepath, true); // Replace 'my_data' with the path to your file
-    xobj.onreadystatechange = function () {
-          if (xobj.readyState == 4 && xobj.status == "200") {
-            // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
-            var jsonResponse = JSON.parse(xobj.responseText);
-        	  	callback(jsonResponse);
-          }
-    };
-    xobj.send(null);  
+/* util for string formatting */
+if (!String.prototype.format) {
+	String.prototype.format = function() {
+		var args = arguments;
+		return this.replace(/{(\d+)}/g, function(match, number) {
+			return typeof(args[number]) != 'undefined' ? args[number] : match;
+    });
+  };
 }
 
-function httpGet(theUrl) {
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, false ); // false for synchronous request
-    xmlHttp.send( null );
-    return xmlHttp.responseText;
-}
+/* 3rd parties endpoints */
+var FREE_GEO_IP_URL = 'http://freegeoip.net/json/';
+var WATHER_FORECAST_URL = 'http://api.openweathermap.org/data/2.5/weather?APPID={0}&units=metric&&lat={1}&lon={2}';
 
-function httpGetAsync(theUrl, callback) {
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (this.readyState == 4 && this.status == 200){
-        		console.log(xmlHttp.responseText);
-        		callback(xmlHttp.responseText);
-        }
-    }
-    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
-    xmlHttp.send();
+
+/* util to get an api response. Returns: Promise */
+var getResponse = function(url, options) {
+	return new Promise(function(resolve, reject) {
+		var request = new Request(url);
+
+		fetch(request).then(response => {
+			if (response.status === 200) {
+				resolve(response.json());
+			} else {
+				reject(new Error("AJAX request failed!"));
+			}
+		});
+	});
 };
-
-var getIPInfos = function(callback) {
-	var url = 'http://freegeoip.net/json/';
-	var response = JSON.parse(httpGet(url));
-	return response;
-}

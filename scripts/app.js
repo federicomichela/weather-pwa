@@ -11,17 +11,32 @@ if (!'indexedDB' in window) {
 
 // create / open indexedDB datastore and tables
 var dbPromise = null;
-var forecastTableName = 'city-forecast';
-var citiesTableName = 'cities';
+var CITY_FORECAST_TABLE_NAME = 'city-forecast';
+
 dbPromise = idb.open('weatherDB', 2, function(weatherDB) {
-	if (!weatherDB.objectStoreNames.contains(forecastTableName)) {
-		var forecastTable = weatherDB.createObjectStore(citiesTableName, {keyPath: 'key'});
-	}
-	if (!weatherDB.objectStoreNames.contains(citiesTableName)) {
-		var citiesTable = weatherDB.createObjectStore(citiesTableName, {keyPath: 'id'});
-		citiesTable.createIndex('name', 'name', {unique: true});
+	if (!weatherDB.objectStoreNames.contains(CITY_FORECAST_TABLE_NAME)) {
+		weatherDB.createObjectStore(CITY_FORECAST_TABLE_NAME, {autoIncrement: true});
 	}
 });
+
+// save to browser cache
+var cacheItem = function(object, tableName) {
+	dbPromise.then(function(db) {
+		// create a readwrite transaction for the table
+		var tx = db.transaction(tableName, 'readwrite');
+
+		// open the table within the transaction
+		var table = tx.objectStore(tableName);
+
+		// store the object
+		table.add(object);
+
+		// terminate the transaction
+		return tx.complete;
+	}).then(() => {
+		console.log("Object stored in '" + tableName + "'");
+	});
+};
 
 // instantiate vuejs object
 var app = new Vue({
@@ -29,68 +44,63 @@ var app = new Vue({
   data: {
     message: 'Hello Vue!',
     isLoading: true,
-    myCities: [{
-    		id: '',
-    		name: 'London',
-    		countryCode: 'GB',
-    		countryName: 'Great Britain',
-    		forecast: {
-        		date: (new Date()).toLocaleDateString(),
-        		description: '',
-        		icon: 'icon img-01d',
-        		avgTemp: 25.0,
-        		minTemp: 0.0,
-        		maxTemp: 0.0,
-        		rain: 0.0,
-        		humidity: 0.0,
-        		wind: {
-        			value: 0.0,
-        			scale: 0.0,
-        			direction: 0.0
-        		},
-        		future: [{
-        			date: '',
-        			minTemp: 0.0,
-        			maxTemp: 0.0,
-        			icon: 'icon img-01d'
-        		},{
-        			date: '',
-        			minTemp: 0.0,
-        			maxTemp: 0.0,
-        			icon: 'icon img-02d'
-        		},{
-        			date: '',
-        			minTemp: 0.0,
-        			maxTemp: 0.0,
-        			icon: 'icon img-03d'
-        		},{
-        			date: '',
-        			minTemp: 0.0,
-        			maxTemp: 0.0,
-        			icon: 'icon img-04d'
-        		},{
-        			date: '',
-        			minTemp: 0.0,
-        			maxTemp: 0.0,
-        			icon: 'icon img-09d'
-        		}]
-    		}
-    		
-    }]
+    myCitiesForecast: []
   },
   computed: {
 
   },
   methods: {
 	  onLoad: function() {
-		  setTimeout(() => { this.isLoading = false; }, 2000);
+		  /* Retrieve cities forecasts from cache.
+		   * If there isn't any, fetch the user's city forecast, render it and cache it.
+		   */
+
+		  this.getCitiesFromCache().then(cities => {
+			  if (cities.length > 0) {
+				  console.log('INFO: Loaded cities from cache');
+				  app.myCitiesForecast = cities;
+			  } else {
+				  // find the user city
+				  getResponse(FREE_GEO_IP_URL).then(response => {
+					  var myCity = response;
+
+					  var url = WATHER_FORECAST_URL.format(settings.WEATHER_SERVICE_API_KEY, myCity.latitude, myCity.longitude);
+					  getResponse(url).then(response => {
+						  var forecast = response;
+
+						  app.myCitiesForecast.push(forecast);
+						  cacheItem(forecast, CITY_FORECAST_TABLE_NAME);
+					  });
+				  });
+			  }
+		  });
 	  },
 
-	  addCity: function(city) {
-		  return
+	  timestampToDateString: function(dt) {
+		  var d = new Date(dt * 1000);
+		  return d.toDateString();
+	  },
+
+	  getIconClass: function(cityWeather) {
+		  return 'icon img-{0}'.format(cityWeather.icon);
+	  },
+
+	  getCitiesFromCache: function() {
+		  return dbPromise.then(function(db) {
+			  var tx = db.transaction(CITY_FORECAST_TABLE_NAME, 'readonly');
+			  var cities = tx.objectStore(CITY_FORECAST_TABLE_NAME);
+			  return cities.getAll();
+		  });
+	  },
+  },
+  watch: {
+	  myCitiesForecast: function() {
+		  if (app.myCitiesForecast.length > 0) {
+			  app.isLoading = false;
+		  }
 	  }
   }
-})
+});
 
 app.onLoad();
 

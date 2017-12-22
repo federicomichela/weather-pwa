@@ -229,8 +229,8 @@ body {
   display: -ms-flexbox;
   display: flex; }
   .weather-forecast .current .icon {
-    width: 128px;
-    height: 128px; }
+    width: 80px;
+    height: 80px; }
   .weather-forecast .current .visual {
     display: -webkit-box;
     display: -webkit-flex;
@@ -309,8 +309,10 @@ body {
 .weather-forecast .icon.img-10n { background-image: url("/images/10n.png"); }
 .weather-forecast .icon.img-11d { background-image: url("/images/11d.png"); }
 .weather-forecast .icon.img-11n { background-image: url("/images/11n.png"); }
-.weather-forecast .icon.img-14d { background-image: url("/images/14d.png"); }
-.weather-forecast .icon.img-14n { background-image: url("/images/14n.png"); }
+.weather-forecast .icon.img-13d { background-image: url("/images/13d.png"); }
+.weather-forecast .icon.img-13n { background-image: url("/images/13n.png"); }
+.weather-forecast .icon.img-50d { background-image: url("/images/50d.png"); }
+.weather-forecast .icon.img-50n { background-image: url("/images/50n.png"); }
 
 @media (max-width: 450px) {
   .weather-forecast .date, .weather-forecast .description {
