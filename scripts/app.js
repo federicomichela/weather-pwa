@@ -15,7 +15,7 @@ var CITY_FORECAST_TABLE_NAME = 'city-forecast';
 
 dbPromise = idb.open('weatherDB', 2, function(weatherDB) {
 	if (!weatherDB.objectStoreNames.contains(CITY_FORECAST_TABLE_NAME)) {
-		weatherDB.createObjectStore(CITY_FORECAST_TABLE_NAME, {autoIncrement: true});
+		weatherDB.createObjectStore(CITY_FORECAST_TABLE_NAME, {keyPath: 'city.id'});
 	}
 });
 
@@ -33,8 +33,6 @@ var cacheItem = function(object, tableName) {
 
 		// terminate the transaction
 		return tx.complete;
-	}).then(() => {
-		console.log("Object stored in '" + tableName + "'");
 	});
 };
 
@@ -64,12 +62,10 @@ var app = new Vue({
 				  getResponse(FREE_GEO_IP_URL).then(response => {
 					  var myCity = response;
 
-					  var url = WATHER_FORECAST_URL.format(settings.WEATHER_SERVICE_API_KEY, myCity.latitude, myCity.longitude);
+					  var url = FORECAST_URL.format(settings.WEATHER_SERVICE_API_KEY, myCity.latitude, myCity.longitude);
+					  console.log(url);
 					  getResponse(url).then(response => {
-						  var forecast = response;
-
-						  app.myCitiesForecast.push(forecast);
-						  cacheItem(forecast, CITY_FORECAST_TABLE_NAME);
+						  app.updateMyCitiesForecast(response);
 					  });
 				  });
 			  }
@@ -81,8 +77,79 @@ var app = new Vue({
 		  return d.toDateString();
 	  },
 
-	  getIconClass: function(cityWeather) {
-		  return 'icon img-{0}'.format(cityWeather.icon);
+	  getDayName: function(d, short) {
+		  if (typeof d == 'number') {
+			  var date = new Date(d * 1000);
+		  } else {
+			  var date = new Date(d);
+		  }
+
+		  var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+		  var shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sund'];
+
+		  if (short) {
+			  return shortDays[date.getDay()];
+		  }
+
+		  return days[date.getDay()];
+	  },
+
+	  updateMyCitiesForecast: function(data) {
+		  /* This methods extracts informations from the forecast api response to build a CityForcast object to render to the UI
+		   * (see util.js > CityForecast and WeatherDetails classes to know more) */
+
+		  var city = _.findWhere(app.myCitiesForecast, {id: data.city.id});
+
+		  if (!city) {
+			  // if can't find the city build it and add it to the citiesForecast list
+			  var id = data.city.id;
+			  var latitude = data.city.coord.lat;
+			  var longitude = data.city.coord.lon;
+			  var name = data.city.name;
+			  var country = data.city.country;
+
+			  city = new CityForecast(id, latitude, longitude, name, country);
+			  app.myCitiesForecast.push(city);
+		  }
+
+		  // update the weather
+		  if (!city.currentWeather) {
+			  city.currentWeather = new WeatherDetails();
+		  }
+
+		  var currentWeather = data.list[0];
+		  city.currentWeather.dt = currentWeather.dt;
+		  city.currentWeather.description = currentWeather.weather[0].description;
+		  city.currentWeather.icon = currentWeather.weather[0].icon;
+		  city.currentWeather.currentTemperature = currentWeather.main.temp;
+		  city.currentWeather.minTemperature = currentWeather.main.temp_min;
+		  city.currentWeather.maxTemperature = currentWeather.main.temp_max;
+		  city.currentWeather.humidity = currentWeather.main.humidity;
+
+		  // update next 4 days forecast
+		  var forecast = [];
+		  var day = new Date(currentWeather.dt_txt);
+		  for (var i = 1; i < 5; i++) {
+			  var weatherDetails = new WeatherDetails();
+
+			  day = new Date(day.setDate(day.getDate() + 1));
+			  var unixdt = day / 1000;
+			  var dayForecast = _.findWhere(data.list, {dt:unixdt});
+
+			  if (dayForecast) {
+				  weatherDetails.dt = dayForecast.dt;
+				  weatherDetails.description = dayForecast.weather[0].description;
+				  weatherDetails.icon = dayForecast.weather[0].icon;
+				  weatherDetails.currentTemperature = dayForecast.main.temp;
+				  weatherDetails.minTemperature = dayForecast.main.temp_min;
+				  weatherDetails.maxTemperature = dayForecast.main.temp_max;
+				  weatherDetails.humidity = dayForecast.main.humidity;
+			  }
+			  forecast.push(weatherDetails);
+		  }
+		  city.forecast = forecast;
+
+		  cacheItem(city, CITY_FORECAST_TABLE_NAME);
 	  },
 
 	  getCitiesFromCache: function() {
@@ -92,6 +159,10 @@ var app = new Vue({
 			  return cities.getAll();
 		  });
 	  },
+
+	  iconClass: function(icon) {
+		  return 'icon img-{0}'.format(icon);
+	  },
   },
   watch: {
 	  myCitiesForecast: function() {
@@ -99,7 +170,7 @@ var app = new Vue({
 			  app.isLoading = false;
 		  }
 	  }
-  }
+  },
 });
 
 app.onLoad();

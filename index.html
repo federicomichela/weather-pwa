@@ -18,40 +18,37 @@
 	</header>
 
 	<main class="main" id="app" v-cloak>
-	<div class="card cardTemplate weather-forecast" v-for="city in myCitiesForecast" v-show="!isLoading">
-		<div class="location">{{ city.name }}</div>
-		<div class="date">{{ timestampToDateString(city.dt) }}</div>
-		<div class="description">{{ city.weather[0].description }}</div>
+	<div class="card cardTemplate weather-forecast" v-for="cityForecast in myCitiesForecast" v-show="!isLoading">
+		<div class="location">{{ cityForecast.name }}</div>
+		<div class="date">{{ timestampToDateString(cityForecast.currentWeather.dt) }}</div>
+		<div class="description">{{ cityForecast.currentWeather.description }}</div>
 		<div class="current">
 			<div class="visual">
-				<div v-bind:class="getIconClass(city.weather[0])"></div>
+				<div v-bind:class="iconClass(cityForecast.currentWeather.icon)"></div>
 				<div class="temperature">
-					<span class="value">{{ city.main.temp }}</span><span class="scale">°</span>
+					<span class="value">{{ cityForecast.currentWeather.currentTemperature }}</span><span class="scale">°</span>
 				</div>
 			</div>
 			<div class="description">
 				<div class="min-temperature">
-					<span class="value">{{ city.main.temp_min }}</span><span class="scale">°</span>
+					<span class="value">{{ cityForecast.currentWeather.minTemperature }}</span><span class="scale">°</span>
 				</div>
 				<div class="max-temperature">
-					<span class="value">{{ city.main.temp_max }}</span><span class="scale">°</span>
+					<span class="value">{{ cityForecast.currentWeather.maxTemperature }}</span><span class="scale">°</span>
 				</div>
-				<div class="precip" v-if="city.rain">{{ city.rain.all }}</div>
-				<div class="humidity" v-if="city.main">{{ city.main.humidity }}</div>
-				<div class="wind" v-if="city.wind">{{ city.wind.deg }}
-				</div>
+				<div class="humidity">{{ cityForecast.currentWeather.humidity }}</div>
 			</div>
 		</div>
 
-		<div class="future" v-if="city.future">
-			<div class="oneday" v-for="day in city.forecast.future">
-				<div class="date">{{ day.date }}</div>
-				<div v-bind:class="day.icon"></div>
-				<div class="temp-high">
-					<span class="value">{{ day.maxTemp }}</span>°
-				</div>
+		<div class="future">
+			<div class="oneday" v-for="day in cityForecast.forecast">
+				<div class="date">{{ getDayName(day.dt) }}</div>
+				<div v-bind:class="iconClass(day.icon)"></div>
 				<div class="temp-low">
-					<span class="value">{{ day.minTemp }}</span>°
+					<span class="value">{{ day.minTemperature }}</span>°
+				</div>
+				<div class="temp-high">
+					<span class="value">{{ day.maxTemperature }}</span>°
 				</div>
 			</div>
 		</div>
