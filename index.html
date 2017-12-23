@@ -18,9 +18,11 @@
 	</header>
 
 	<main class="main" id="app" v-cloak>
+	<div class="container clock">{{unixdtToLocalTimeString(clock)}}</div>
+
 	<div class="card cardTemplate weather-forecast" v-for="cityForecast in myCitiesForecast" v-show="!isLoading">
 		<div class="location">{{ cityForecast.name }}</div>
-		<div class="date">{{ timestampToDateString(cityForecast.currentWeather.dt) }}</div>
+		<div class="date">{{ unixdtToDateString(cityForecast.dt) }}</div>
 		<div class="description">{{ cityForecast.currentWeather.description }}</div>
 		<div class="current">
 			<div class="visual">

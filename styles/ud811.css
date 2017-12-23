@@ -208,6 +208,18 @@ body {
   transition: transform 0.333s cubic-bezier(0, 0, 0.21, 1) 0.05s, -webkit-transform 0.333s cubic-bezier(0, 0, 0.21, 1) 0.05s;
   padding: 24px; }
 
+.container {
+  padding: 16px;
+  position: relative;
+  box-sizing: border-box;
+  border-radius: 2px;
+  margin: 10px;
+}
+
+.clock {
+  font-size: 3em;
+}
+
 .card {
   padding: 16px;
   position: relative;

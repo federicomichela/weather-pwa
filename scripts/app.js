@@ -28,8 +28,15 @@ var cacheItem = function(object, tableName) {
 		// open the table within the transaction
 		var table = tx.objectStore(tableName);
 
-		// store the object
-		table.add(object);
+		// check if object exists in the table
+		var obj = table.get(object.id);
+
+		if (obj) {
+			table.put(object);
+		} else {
+			// store the object
+			table.add(object);
+		}
 
 		// terminate the transaction
 		return tx.complete;
@@ -42,7 +49,8 @@ var app = new Vue({
   data: {
     message: 'Hello Vue!',
     isLoading: true,
-    myCitiesForecast: []
+    myCitiesForecast: [],
+    clock: new Date() / 1000,
   },
   computed: {
 
@@ -72,9 +80,29 @@ var app = new Vue({
 		  });
 	  },
 
-	  timestampToDateString: function(dt) {
+	  refresh: function() {
+		  console.log('reloading from api');
+
+		  // find the user city
+		  getResponse(FREE_GEO_IP_URL).then(response => {
+			  var myCity = response;
+
+			  var url = FORECAST_URL.format(settings.WEATHER_SERVICE_API_KEY, myCity.latitude, myCity.longitude);
+			  console.log(url);
+			  getResponse(url).then(response => {
+				  app.updateMyCitiesForecast(response);
+			  });
+		  });
+	  },
+
+	  unixdtToDateString: function(dt) {
 		  var d = new Date(dt * 1000);
 		  return d.toDateString();
+	  },
+
+	  unixdtToLocalTimeString: function(dt) {
+		  var d = new Date(dt * 1000);
+		  return d.toLocaleTimeString();
 	  },
 
 	  getDayName: function(d, short) {
@@ -107,8 +135,9 @@ var app = new Vue({
 			  var longitude = data.city.coord.lon;
 			  var name = data.city.name;
 			  var country = data.city.country;
+			  var dt = parseInt(new Date() / 1000);
 
-			  city = new CityForecast(id, latitude, longitude, name, country);
+			  city = new CityForecast(id, latitude, longitude, name, country, dt);
 			  app.myCitiesForecast.push(city);
 		  }
 
@@ -118,7 +147,6 @@ var app = new Vue({
 		  }
 
 		  var currentWeather = data.list[0];
-		  city.currentWeather.dt = currentWeather.dt;
 		  city.currentWeather.description = currentWeather.weather[0].description;
 		  city.currentWeather.icon = currentWeather.weather[0].icon;
 		  city.currentWeather.currentTemperature = currentWeather.main.temp;
@@ -137,7 +165,6 @@ var app = new Vue({
 			  var dayForecast = _.findWhere(data.list, {dt:unixdt});
 
 			  if (dayForecast) {
-				  weatherDetails.dt = dayForecast.dt;
 				  weatherDetails.description = dayForecast.weather[0].description;
 				  weatherDetails.icon = dayForecast.weather[0].icon;
 				  weatherDetails.currentTemperature = dayForecast.main.temp;
@@ -163,6 +190,10 @@ var app = new Vue({
 	  iconClass: function(icon) {
 		  return 'icon img-{0}'.format(icon);
 	  },
+
+	  updateDateTime: function() {
+		  app.clock = new Date() / 1000;
+	  }
   },
   watch: {
 	  myCitiesForecast: function() {
@@ -171,9 +202,16 @@ var app = new Vue({
 		  }
 	  }
   },
+  mounted() {
+	  setInterval(this.updateDateTime, 1000);
+  }
 });
 
 app.onLoad();
+
+$('#butRefresh').click(e => {
+	app.refresh();
+});
 
 //
 //(function() {

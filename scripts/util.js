@@ -39,20 +39,20 @@ var getResponse = function(url, options) {
  *
  * */
 class CityForecast {
-	constructor(id, latitude, longitude, name, country, currentWeather, forecast) {
+	constructor(id, latitude, longitude, name, country, dt, currentWeather, forecast) {
 		this.id = id;
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.name = name;
 		this.country = country;
+		this.dt = dt;
 		this.currentWeather = currentWeather;
 		this.forecast = forecast;
 	}
 }
 
 class WeatherDetails {
-	constructor(dt, description, icon, currentTemperature, minTemperature, maxTemperature, humidity) {
-		this.dt = dt;
+	constructor(description, icon, currentTemperature, minTemperature, maxTemperature, humidity) {
 		this.description = description;
 		this.icon = icon;
 		this.currentTemperature = currentTemperature;
