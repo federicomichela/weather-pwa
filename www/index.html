@@ -42,7 +42,7 @@
 			</div>
 		</div>
 
-		<div class="future">
+		<div class="future" v-show="cityForecast.forecast">
 			<div class="oneday" v-for="day in cityForecast.forecast">
 				<div class="date">{{ getDayName(day.dt) }}</div>
 				<div v-bind:class="iconClass(day.icon)"></div>
