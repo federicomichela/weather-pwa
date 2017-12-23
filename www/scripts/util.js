@@ -9,9 +9,9 @@ if (!String.prototype.format) {
 }
 
 /* 3rd parties endpoints */
-var FREE_GEO_IP_URL = 'http://freegeoip.net/json/';
-var WATHER_URL = 'http://api.openweathermap.org/data/2.5/weather?APPID={0}&units=metric&&lat={1}&lon={2}';
-var FORECAST_URL = 'http://api.openweathermap.org/data/2.5/forecast?APPID={0}&units=metric&&lat={1}&lon={2}';
+var FREE_GEO_IP_URL = 'https://freegeoip.net/json/';
+var WATHER_URL = 'https://api.openweathermap.org/data/2.5/weather?APPID={0}&units=metric&&lat={1}&lon={2}';
+var FORECAST_URL = 'https://api.openweathermap.org/data/2.5/forecast?APPID={0}&units=metric&&lat={1}&lon={2}';
 
 
 /* util to get an api response. Returns: Promise */
@@ -52,12 +52,13 @@ class CityForecast {
 }
 
 class WeatherDetails {
-	constructor(description, icon, currentTemperature, minTemperature, maxTemperature, humidity) {
+	constructor(description, icon, currentTemperature, minTemperature, maxTemperature, humidity, dt) {
 		this.description = description;
 		this.icon = icon;
 		this.currentTemperature = currentTemperature;
 		this.minTemperature = minTemperature;
 		this.maxTemperature = maxTemperature;
 		this.humidity = humidity;
+		this.dt = dt;
 	}
 }

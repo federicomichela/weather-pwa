@@ -15,7 +15,7 @@ var CITY_FORECAST_TABLE_NAME = 'city-forecast';
 
 dbPromise = idb.open('weatherDB', 2, function(weatherDB) {
 	if (!weatherDB.objectStoreNames.contains(CITY_FORECAST_TABLE_NAME)) {
-		weatherDB.createObjectStore(CITY_FORECAST_TABLE_NAME, {keyPath: 'city.id'});
+		weatherDB.createObjectStore(CITY_FORECAST_TABLE_NAME, {keyPath: 'id'});
 	}
 });
 
@@ -171,6 +171,7 @@ var app = new Vue({
 				  weatherDetails.minTemperature = dayForecast.main.temp_min;
 				  weatherDetails.maxTemperature = dayForecast.main.temp_max;
 				  weatherDetails.humidity = dayForecast.main.humidity;
+				  weatherDetails.dt = unixdt;
 			  }
 			  forecast.push(weatherDetails);
 		  }
