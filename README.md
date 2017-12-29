@@ -8,4 +8,15 @@ Using open apis:
 > openweathermap.org
 > google places apis
 
+Languages:
+> HTML
+> CSS
+> Javascript / JQuery
+
+Technologies Involved:
+> Javascript Promises
+> Vue.js
+> IndexedDb
+> Service Workers
+
 http://weather-app-189914.appspot.com/
