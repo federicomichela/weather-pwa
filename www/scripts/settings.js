@@ -1,5 +1,9 @@
 var settings = {
 "WEATHER_SERVICE_API_KEY": "ecefd3d2e460437978a5ad49c738ec1a",
+"GOOGLE_PLACES_API_KEY": "AIzaSyBo8E5cJ-0Gbvtl_e-r5Cr4IDh4Cr_hYx8",
+"GOOGLE_MAPS_API_KEY": "AIzaSyB8NwjPNAx2I8rx7H6CBNXUAF_0kwCzshQ",
+"CLIENT_ID": '666490116156-vod5uieckjp867b6t2t8qg048nrenfr9.apps.googleusercontent.com',
+"CLIENT_SECRET": '63dbq7KdD-0kib6ek3SF-WIR',
 "DEFAULT_COUNTRY": "GB",
 "DEFAULT_CITY": "London"
 }

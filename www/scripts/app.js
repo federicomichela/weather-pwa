@@ -51,9 +51,12 @@ var app = new Vue({
     isLoading: true,
     myCitiesForecast: [],
     clock: new Date() / 1000,
+    inDevelopment: true
   },
   computed: {
-
+	  loggedIn: function() {
+		  return googleAuth.isSignedIn.get()
+	  }
   },
   methods: {
 	  onLoad: function() {
@@ -208,11 +211,61 @@ var app = new Vue({
   }
 });
 
+var updateSigninStatus = function(isSignedIn) {
+	console.log('is signed in: {0}'.format(isSignedIn));
+}
+
+//var googleAuth;
+gapi.load('auth2', function() {
+//	// Library loaded.
+//	console.log('auth2 library loaded');
+//	gapi.auth2.init({
+//		  client_id: '{0}.apps.googleusercontent.com'.format(settings.CLIENT_ID)
+//	});
+//	googleAuth = gapi.auth2.getAuthInstance();
+	
+	gapi.auth2.init({
+	    client_id: '{0}.apps.googleusercontent.com'.format(settings.CLIENT_ID),
+	});
+});
+
 app.onLoad();
 
 $('#butRefresh').click(e => {
 	app.refresh();
 });
+
+$('#signinButton').click(function() {
+    // signInCallback defined in step 6.
+    auth2.grantOfflineAccess().then(signInCallback);
+  });
+
+function signInCallback(authResult) {
+	  if (authResult['code']) {
+
+	    // Hide the sign-in button now that the user is authorized, for example:
+	    $('#signinButton').attr('style', 'display: none');
+
+	    // Send the code to the server
+	    $.ajax({
+	      type: 'POST',
+	      url: 'http://example.com/storeauthcode',
+	      // Always include an `X-Requested-With` header in every AJAX request,
+	      // to protect against CSRF attacks.
+	      headers: {
+	        'X-Requested-With': 'XMLHttpRequest'
+	      },
+	      contentType: 'application/octet-stream; charset=utf-8',
+	      success: function(result) {
+	        // Handle or verify the server response.
+	      },
+	      processData: false,
+	      data: authResult['code']
+	    });
+	  } else {
+	    // There was an error.
+	  }
+	}
 
 //
 //(function() {

@@ -326,6 +326,8 @@ body {
 .weather-forecast .icon.img-50d { background-image: url("/images/50d.png"); }
 .weather-forecast .icon.img-50n { background-image: url("/images/50n.png"); }
 
+.development { display: none; }
+
 @media (max-width: 450px) {
   .weather-forecast .date, .weather-forecast .description {
     font-size: 0.9em; }

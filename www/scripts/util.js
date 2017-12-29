@@ -12,18 +12,29 @@ if (!String.prototype.format) {
 var FREE_GEO_IP_URL = 'https://freegeoip.net/json/';
 var WATHER_URL = 'https://api.openweathermap.org/data/2.5/weather?APPID={0}&units=metric&&lat={1}&lon={2}';
 var FORECAST_URL = 'https://api.openweathermap.org/data/2.5/forecast?APPID={0}&units=metric&&lat={1}&lon={2}';
+var GOOGLE_PLACES_URL = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?key=' + settings.GOOGLE_PLACES_API_KEY + '&input={0}';
 
 
 /* util to get an api response. Returns: Promise */
-var getResponse = function(url, options) {
+var getResponse = function(url, authenticated) {
 	return new Promise(function(resolve, reject) {
-		var request = new Request(url);
+		var headers = new Headers();
+
+		if (authenticated) {
+			var user = gapi.auth2.getAuthInstance().currentUser.get();
+			var oauthToken = user.getAuthResponse().access_token;
+			headers.append('Authorization', 'Bearer ' + oauthToken);
+		}
+
+		var options = { headers: headers };
+		console.log(options);
+		var request = new Request(url, options);
 
 		fetch(request).then(response => {
 			if (response.status === 200) {
 				resolve(response.json());
 			} else {
-				reject(new Error("AJAX request failed!"));
+				reject(new Error("AJAX request failed!\n{0}".format(response)));
 			}
 		});
 	});
